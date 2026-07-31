@@ -11,17 +11,26 @@ try {
   if (process.env.DB_URL) {
     console.log('📊 Using DB_URL for database connection');
     
-    // ✅ Get the connection string
     let dbUrl = process.env.DB_URL;
     
-    // ✅ Force SSL mode in the connection string
+    // ✅ Add sslmode=require to the URL
     if (!dbUrl.includes('sslmode=')) {
       dbUrl = dbUrl + (dbUrl.includes('?') ? '&' : '?') + 'sslmode=require';
     }
     
-    console.log('📊 SSL mode configured');
+    console.log('📊 Connection URL with SSL:');
+    // Log masked URL for security (hide password)
+    const maskedUrl = dbUrl.replace(/\/\/[^:]+:[^@]+@/, '//user:*****@');
+    console.log(`   ${maskedUrl}`);
     
-    // ✅ Create Sequelize instance with explicit SSL configuration
+    // ✅ Create with native pg options
+    const pg = require('pg');
+    
+    // ✅ Configure pg to accept self-signed certificates
+    pg.defaults.ssl = {
+      rejectUnauthorized: false
+    };
+    
     sequelize = new Sequelize(dbUrl, {
       dialect: 'postgres',
       logging: false,
@@ -34,20 +43,8 @@ try {
       dialectOptions: {
         ssl: {
           require: true,
-          rejectUnauthorized: false // ✅ Fixes self-signed certificate
+          rejectUnauthorized: false
         }
-      },
-      // ✅ Additional options that might help
-      retry: {
-        match: [
-          /SequelizeConnectionError/,
-          /SequelizeConnectionRefusedError/,
-          /SequelizeHostNotFoundError/,
-          /SequelizeHostNotReachableError/,
-          /SequelizeInvalidConnectionError/,
-          /SequelizeConnectionTimedOutError/
-        ],
-        max: 5
       }
     });
   } else {
@@ -67,13 +64,6 @@ try {
           min: 0,
           acquire: 30000,
           idle: 10000
-        },
-        retry: {
-          match: [
-            /SequelizeConnectionError/,
-            /SequelizeConnectionRefusedError/
-          ],
-          max: 3
         }
       }
     );
