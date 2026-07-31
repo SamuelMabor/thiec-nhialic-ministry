@@ -2,6 +2,8 @@ const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 console.log('📊 Database Configuration:');
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   DB_URL exists:', !!process.env.DB_URL);
 
 let sequelize;
 
@@ -9,18 +11,18 @@ try {
   if (process.env.DB_URL) {
     console.log('📊 Using DB_URL for database connection');
     
-    // Get the connection string
-    let dbUrl = process.env.DB_URL;
+    // ✅ Fix: Parse the DB_URL and add SSL options properly
+    const url = new URL(process.env.DB_URL);
     
     // Add sslmode=require if not present
-    if (!dbUrl.includes('sslmode=')) {
-      dbUrl = dbUrl + (dbUrl.includes('?') ? '&' : '?') + 'sslmode=require';
+    if (!url.searchParams.has('sslmode')) {
+      url.searchParams.append('sslmode', 'require');
     }
     
-    console.log('📊 SSL mode configured');
+    const connectionString = url.toString();
+    console.log('📊 Connection string configured with SSL');
     
-    // Create Sequelize instance with SSL options
-    sequelize = new Sequelize(dbUrl, {
+    sequelize = new Sequelize(connectionString, {
       dialect: 'postgres',
       logging: false,
       pool: {
@@ -32,13 +34,13 @@ try {
       dialectOptions: {
         ssl: {
           require: true,
-          rejectUnauthorized: false // ✅ Fixes self-signed certificate
+          rejectUnauthorized: false // ✅ This fixes the self-signed certificate
         }
       }
     });
   } else {
-    // Local development
-    console.log('📊 Using local database configuration');
+    // Use individual environment variables (local development)
+    console.log('📊 Using individual DB_* variables for database connection');
     sequelize = new Sequelize(
       process.env.DB_NAME || 'thiec_nhialic',
       process.env.DB_USER || 'postgres',
@@ -47,12 +49,18 @@ try {
         host: process.env.DB_HOST || 'localhost',
         port: parseInt(process.env.DB_PORT) || 5432,
         dialect: 'postgres',
-        logging: console.log,
+        logging: false,
         pool: {
           max: 10,
           min: 0,
           acquire: 30000,
           idle: 10000
+        },
+        dialectOptions: {
+          ssl: process.env.NODE_ENV === 'production' ? {
+            require: true,
+            rejectUnauthorized: false
+          } : false
         }
       }
     );
