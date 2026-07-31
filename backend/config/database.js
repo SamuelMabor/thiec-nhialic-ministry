@@ -1,13 +1,10 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+// ✅ Use DB_URL from environment variables (Render)
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
+  process.env.DB_URL, // This is the key change
   {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
@@ -15,6 +12,12 @@ const sequelize = new Sequelize(
       min: 0,
       acquire: 30000,
       idle: 10000
+    },
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false // Required for Render's free PostgreSQL
+      }
     }
   }
 );
