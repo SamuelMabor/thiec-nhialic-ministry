@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -10,7 +9,7 @@ const apiRoutes = require('./routes/api');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS - Simplified for Express v5
+// ✅ CORS Configuration - Allow all origins for now
 app.use(cors({
   origin: '*',
   credentials: true,
@@ -18,8 +17,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// ❌ REMOVE this line - it's causing the error
-// app.options('*', cors());
+// ✅ Handle preflight requests
+app.options('*', cors());
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
@@ -69,17 +68,11 @@ async function startServer() {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connection established.');
-    
-    // Only sync in development
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      console.log('✅ Database synchronized.');
-    }
-    
+    await sequelize.sync({ alter: true });
+    console.log('✅ Database synchronized.');
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📍 http://localhost:${PORT}`);
-      console.log(`📍 http://127.0.0.1:${PORT}`);
     });
   } catch (error) {
     console.error('❌ Unable to start server:', error);
