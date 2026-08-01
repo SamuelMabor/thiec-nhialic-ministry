@@ -1,7 +1,7 @@
 // API Configuration
 // ✅ Use the full URL with the correct port
-const API_BASE = 'http://localhost:5000/api';
-
+// ✅ This should be your Render backend URL
+const API_BASE = 'https://thiec-nhialic-backend.onrender.com/api';
 // ✅ Alternative: Use relative URL if frontend is served from same origin
 // const API_BASE = '/api';
 
