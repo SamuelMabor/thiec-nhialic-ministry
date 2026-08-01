@@ -2,7 +2,7 @@
 -- CREATE DATABASE thiec_nhialic;
 
 -- Switch to the database
-\c thiec_db;
+\c thiec-nhialic-db;
 
 -- Create ENUM types
 CREATE TYPE gender_enum AS ENUM ('Male', 'Female');
