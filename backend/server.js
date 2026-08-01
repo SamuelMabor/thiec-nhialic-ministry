@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -9,7 +10,7 @@ const apiRoutes = require('./routes/api');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ CORS Configuration - Allow all origins for now
+// ✅ CORS Configuration - Fixed for Express v5
 app.use(cors({
   origin: '*',
   credentials: true,
@@ -17,8 +18,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// ✅ Handle preflight requests
-app.options('*', cors());
+// ❌ REMOVE this line - it's causing the error
+// app.options('*', cors());
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
